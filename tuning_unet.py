@@ -118,6 +118,11 @@ def train(train_loader, model, criterion, optimizer, validation, args):
 
             masks_pred = model(input_var)
 
+            # 調整輸出大小
+            masks_pred = F.interpolate(masks_pred, size=target_var.size()[2:], mode='bilinear', align_corners=False)
+
+            # print(masks_pred.size())
+            # print(target_var.size())
             masks_probs_flat = masks_pred.view(-1)
             true_masks_flat  = target_var.view(-1)
 
@@ -241,20 +246,36 @@ if __name__ == '__main__':
 
     channel_means = [0.485, 0.456, 0.406]
     channel_stds  = [0.229, 0.224, 0.225]
-    train_tfms = transforms.Compose([transforms.ToTensor(),
-                                     transforms.Normalize(channel_means, channel_stds)])
+    train_tfms = transforms.Compose([
+        transforms.Resize((256, 256)),  # Resize to 256x256
+        transforms.ToTensor(),
+        transforms.Normalize(channel_means, channel_stds)
+    ])
+    val_tfms = transforms.Compose([
+        transforms.Resize((256, 256)),
+        transforms.ToTensor(),
+        transforms.Normalize(channel_means, channel_stds)
+    ])
+    train_mask_tfms = transforms.Compose([
+      transforms.Grayscale(num_output_channels=1),
+      transforms.Resize((256, 256)), 
+      transforms.ToTensor()
+    ])
+    val_mask_tfms = transforms.Compose([
+      transforms.Grayscale(num_output_channels=1),
+      transforms.Resize((256, 256)), 
+      transforms.ToTensor()
+    ])
 
-    val_tfms = transforms.Compose([transforms.ToTensor(),
-                                   transforms.Normalize(channel_means, channel_stds)])
-
-    train_mask_tfms = transforms.Compose([transforms.ToTensor()])
-    val_mask_tfms = transforms.Compose([transforms.ToTensor()])
-
-    train_dataset = ImgDataSet(img_dir=TRAIN_DIR_IMG, img_fnames=train_img_names, img_transform=train_tfms, mask_dir=TRAIN_DIR_MASK, mask_fnames=train_mask_names, mask_transform=train_mask_tfms)
-    valid_dataset = ImgDataSet(img_dir=VAL_DIR_IMG, img_fnames=val_img_names, img_transform=val_tfms, mask_dir=VAL_DIR_MASK, mask_fnames=val_mask_names, mask_transform=val_mask_tfms)
-
-    train_loader = DataLoader(train_dataset, args.batch_size, shuffle=False, pin_memory=torch.cuda.is_available(), num_workers=args.num_workers)
-    valid_loader = DataLoader(valid_dataset, args.batch_size, shuffle=False, pin_memory=torch.cuda.is_available(), num_workers=args.num_workers)
+    # Datasets and DataLoaders
+    train_dataset = ImgDataSet(img_dir=TRAIN_DIR_IMG, img_fnames=train_img_names, img_transform=train_tfms,
+                               mask_dir=TRAIN_DIR_MASK, mask_fnames=train_mask_names, mask_transform=train_mask_tfms)
+    val_dataset = ImgDataSet(img_dir=VAL_DIR_IMG, img_fnames=val_img_names, img_transform=val_tfms,
+                             mask_dir=VAL_DIR_MASK, mask_fnames=val_mask_names, mask_transform=val_mask_tfms)
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
+                              pin_memory=torch.cuda.is_available(), num_workers=args.num_workers)
+    valid_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,
+                            pin_memory=torch.cuda.is_available(), num_workers=args.num_workers)
 
     model.cuda()
 
