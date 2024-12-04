@@ -128,12 +128,18 @@ class UNet16(nn.Module):
 
     def forward(self, x):
         conv1 = self.conv1(x)
+        # print(conv1.size())
         conv2 = self.conv2(self.pool(conv1))
+        # print(conv2.size())
         conv3 = self.conv3(self.pool(conv2))
+        # print(conv3.size())
         conv4 = self.conv4(self.pool(conv3))
+        # print(conv4.size())
         conv5 = self.conv5(self.pool(conv4))
+        # print(conv5.size())
 
         center = self.center(self.pool(conv5))
+        # print(center.size())
 
         dec5 = self.dec5(torch.cat([center, conv5], 1))
 
@@ -147,6 +153,7 @@ class UNet16(nn.Module):
         else:
             x_out = self.final(dec1)
             #x_out = F.sigmoid(x_out)
+        # print(x_out.size())
 
         return x_out
 
