@@ -222,8 +222,6 @@ if __name__ == '__main__':
     val_img_names  = [path.name for path in Path(VAL_DIR_IMG).glob('*.jpg')]
     val_mask_names = [path.name for path in Path(VAL_DIR_MASK).glob('*.jpg')]
 
-    print(f'total images = {len(img_names)}')
-
     if args.model_type == 'vgg16':
         model = load_unet_vgg16(args.model_path)
     elif args.model_type  == 'resnet101':
