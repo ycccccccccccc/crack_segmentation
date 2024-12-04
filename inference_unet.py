@@ -16,6 +16,7 @@ import gc
 from utils import load_unet_vgg16, load_unet_resnet_101, load_unet_resnet_34
 from tqdm import tqdm
 import copy
+import csv
 
 def evaluate_img(model, img):
     input_width, input_height = input_size[0], input_size[1]
@@ -223,6 +224,7 @@ if __name__ == '__main__':
               print("\n IOU = ", IOU(img_gt, res_patch)[0])
 
             else:
+              iou_list=[]
               for thresh_it in range(1,20):
                 thresh = thresh_it/500
                 prob_map_viz_patch = prob_map_patch.copy()
@@ -235,8 +237,15 @@ if __name__ == '__main__':
 
                 res_patch = cv.resize((prob_map_viz_patch * 255).astype(np.uint8), (1600, 1200), interpolation=cv.INTER_AREA)
                 cv.imwrite(filename=f'test_{thresh}.jpg', img=res_patch)
-                print(f"IOU when thresh = {thresh}: ", IOU(img_gt, res_patch), "\n")
+                iou = IOU(img_gt, res_patch)
+                iou_list.append(iou)
+                print(f"IOU when thresh = {thresh}: ", iou, "\n")
 
+            with open('output.csv', mode='w', newline='') as file:
+              writer = csv.writer(file)
+              writer.writerow(["IOU"])  # 可選：添加表頭
+              writer.writerows([[value] for value in iou_list])  # 每個值作為一行
+                
             fig = plt.figure()
             st = fig.suptitle(f'name={path.stem} \n cut-off threshold = {args.threshold}', fontsize="x-large")
             ax = fig.add_subplot(231)
