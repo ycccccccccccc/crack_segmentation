@@ -144,12 +144,13 @@ def train(train_loader, model, criterion, optimizer, validation, args):
 
         #save the model of the current epoch
         epoch_model_path = os.path.join(*[args.model_dir, f'model_epoch_{epoch}.pt'])
-        torch.save({
-            'model': model.state_dict(),
-            'epoch': epoch,
-            'valid_loss': valid_loss,
-            'train_loss': losses.avg
-        }, epoch_model_path)
+        if epoch % 10 == 0:
+            torch.save({
+                'model': model.state_dict(),
+                'epoch': epoch,
+                'valid_loss': valid_loss,
+                'train_loss': losses.avg
+            }, epoch_model_path)
 
         if valid_loss < min_val_los:
             min_val_los = valid_loss
