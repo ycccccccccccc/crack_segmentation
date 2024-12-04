@@ -202,7 +202,8 @@ if __name__ == '__main__':
     parser.add_argument('-num_workers', default=4, type=int, help='output dataset directory')
     parser.add_argument('-data_size', default=0.5, type=str, help='train dataset size (default: 0.5)')
 
-    parser.add_argument('-data_dir',type=str, help='input dataset directory')
+    parser.add_argument('-train_data_dir',type=str, help='input dataset directory')
+    parser.add_argument('-val_data_dir',type=str, help='input dataset directory')
     parser.add_argument('-model_dir', type=str, help='output dataset directory')
     parser.add_argument('-model_type', type=str, required=False, default='resnet101', choices=['vgg16', 'resnet101', 'resnet34'])
     parser.add_argument('-model_path', type=str, help='trained model path')
@@ -211,11 +212,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
     os.makedirs(args.model_dir, exist_ok=True)
 
-    DIR_IMG  = os.path.join(args.data_dir, 'images')
-    DIR_MASK = os.path.join(args.data_dir, 'masks')
+    TRAIN_DIR_IMG  = os.path.join(args.train_data_dir, 'images')
+    TRAIN_DIR_MASK = os.path.join(args.train_data_dir, 'masks')
+    VAL_DIR_IMG  = os.path.join(args.val_data_dir, 'images')
+    VAL_DIR_MASK = os.path.join(args.val_data_dir, 'masks')
 
-    img_names  = [path.name for path in Path(DIR_IMG).glob('*.jpg')]
-    mask_names = [path.name for path in Path(DIR_MASK).glob('*.jpg')]
+    train_img_names  = [path.name for path in Path(TRAIN_DIR_IMG).glob('*.jpg')]
+    train_mask_names = [path.name for path in Path(TRAIN_DIR_MASK).glob('*.jpg')]
+    val_img_names  = [path.name for path in Path(VAL_DIR_IMG).glob('*.jpg')]
+    val_mask_names = [path.name for path in Path(VAL_DIR_MASK).glob('*.jpg')]
 
     print(f'total images = {len(img_names)}')
 
@@ -244,12 +249,11 @@ if __name__ == '__main__':
     val_tfms = transforms.Compose([transforms.ToTensor(),
                                    transforms.Normalize(channel_means, channel_stds)])
 
-    mask_tfms = transforms.Compose([transforms.ToTensor()])
+    train_mask_tfms = transforms.Compose([transforms.ToTensor()])
+    val_mask_tfms = transforms.Compose([transforms.ToTensor()])
 
-    dataset = ImgDataSet(img_dir=DIR_IMG, img_fnames=img_names, img_transform=train_tfms, mask_dir=DIR_MASK, mask_fnames=mask_names, mask_transform=mask_tfms)
-    train_size = int(args.data_size*len(dataset))
-    valid_size = len(dataset) - train_size
-    train_dataset, valid_dataset = random_split(dataset, [train_size, valid_size])
+    train_dataset = ImgDataSet(img_dir=TRAIN_DIR_IMG, img_fnames=train_img_names, img_transform=train_tfms, mask_dir=TRAIN_DIR_MASK, mask_fnames=train_mask_names, mask_transform=train_mask_tfms)
+    valid_dataset = ImgDataSet(img_dir=VAL_DIR_IMG, img_fnames=val_img_names, img_transform=val_tfms, mask_dir=VAL_DIR_MASK, mask_fnames=val_mask_names, mask_transform=val_mask_tfms)
 
     train_loader = DataLoader(train_dataset, args.batch_size, shuffle=False, pin_memory=torch.cuda.is_available(), num_workers=args.num_workers)
     valid_loader = DataLoader(valid_dataset, args.batch_size, shuffle=False, pin_memory=torch.cuda.is_available(), num_workers=args.num_workers)
