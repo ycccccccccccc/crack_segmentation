@@ -217,8 +217,8 @@ if __name__ == '__main__':
     VAL_DIR_IMG  = os.path.join(args.val_data_dir, 'images')
     VAL_DIR_MASK = os.path.join(args.val_data_dir, 'masks')
 
-    train_img_names = [path.name for path in Path(DIR_IMG).glob('*.jpg')] + [path.name for path in Path(TRAIN_DIR_IMG).glob('*.png')]
-    train_mask_names = [path.name for path in Path(DIR_MASK).glob('*.jpg')] + [path.name for path in Path(TRAIN_DIR_MASK).glob('*.png')]
+    train_img_names = [path.name for path in Path(TRAIN_DIR_IMG).glob('*.jpg')] + [path.name for path in Path(TRAIN_DIR_IMG).glob('*.png')]
+    train_mask_names = [path.name for path in Path(TRAIN_DIR_MASK).glob('*.jpg')] + [path.name for path in Path(TRAIN_DIR_MASK).glob('*.png')]
     val_img_names  = [path.name for path in Path(VAL_DIR_IMG).glob('*.jpg')] + [path.name for path in Path(VAL_DIR_IMG).glob('*.png')]
     val_mask_names = [path.name for path in Path(VAL_DIR_MASK).glob('*.jpg')] + [path.name for path in Path(VAL_DIR_MASK).glob('*.png')]
 
